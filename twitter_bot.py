@@ -342,8 +342,22 @@ class ProfessionalTwitterBot:
     def post_tweet(self, content: Dict, include_image: bool = False):
         """Post a tweet with optional image"""
         try:
+            # Test API connection first
+            logger.info("Testing Twitter API connection...")
+            try:
+                user = self.client.get_me()
+                if user.data:
+                    logger.info(f"✅ Connected to Twitter API as: @{user.data.username}")
+                else:
+                    logger.error("❌ Failed to get user info from Twitter API")
+                    return False
+            except Exception as e:
+                logger.error(f"❌ Twitter API connection test failed: {e}")
+                return False
+            
             # Format the tweet content
             tweet_text = self.format_tweet_with_pollinations(content)
+            logger.info(f"📝 Formatted tweet ({len(tweet_text)} chars): {tweet_text[:100]}...")
             
             # Add random delay to appear more human-like
             delay = random.uniform(30, 120)  # 30 seconds to 2 minutes
@@ -425,6 +439,62 @@ class ProfessionalTwitterBot:
         else:
             log_tweet_activity(logger, selected_content, False)
     
+    def test_api_credentials(self):
+        """Test API credentials and permissions"""
+        logger.info("🧪 Testing Twitter API credentials...")
+        
+        try:
+            # Test API v2 connection
+            user = self.client.get_me()
+            if user.data:
+                logger.info(f"✅ API v2 connected as: @{user.data.username}")
+                logger.info(f"📊 User ID: {user.data.id}")
+            else:
+                logger.error("❌ API v2 connection failed")
+                return False
+            
+            # Test API v1.1 connection
+            try:
+                user_v1 = self.api_v1.verify_credentials()
+                if user_v1:
+                    logger.info(f"✅ API v1.1 connected as: @{user_v1.screen_name}")
+                else:
+                    logger.error("❌ API v1.1 connection failed")
+                    return False
+            except Exception as e:
+                logger.error(f"❌ API v1.1 test failed: {e}")
+                return False
+            
+            # Test posting permissions with a simple tweet
+            logger.info("🧪 Testing tweet posting permissions...")
+            test_tweet = "🧪 Testing Twitter API permissions - this is a test tweet from Nexoxa bot"
+            
+            try:
+                response = self.client.create_tweet(text=test_tweet)
+                if response.data:
+                    logger.info(f"✅ Tweet posted successfully! ID: {response.data['id']}")
+                    logger.info("🎉 API credentials and permissions are working correctly!")
+                    return True
+                else:
+                    logger.error("❌ Tweet posting failed - no response data")
+                    return False
+            except tweepy.TooManyRequests as e:
+                logger.warning(f"⚠️ Rate limit exceeded: {e}")
+                return False
+            except tweepy.Unauthorized as e:
+                logger.error(f"❌ Unauthorized - check API credentials: {e}")
+                return False
+            except tweepy.Forbidden as e:
+                logger.error(f"❌ Forbidden - check app permissions: {e}")
+                return False
+            except Exception as e:
+                logger.error(f"❌ Tweet posting test failed: {e}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ API credentials test failed: {e}")
+            return False
+
     def start_bot(self, single_post: bool = False):
         """Start the bot with scheduled posting"""
         logger.info("Starting Professional Twitter bot...")
