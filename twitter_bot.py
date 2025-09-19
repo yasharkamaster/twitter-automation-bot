@@ -53,26 +53,25 @@ class ProfessionalTwitterBot:
         
         # Professional content templates
         self.professional_templates = [
-            "Building Nexoxa taught me: {insight}\n\nWhat's your take on this? #TechLeadership #StartupLife #Nexoxa #AIContent",
-            "After creating Nexoxa (AI content sharing platform), I've learned: {insight}\n\nAlways evolving in tech! #Innovation #TechTrends #Nexoxa",
-            "From building Nexoxa: {insight}\n\nThoughts? #TechCommunity #Entrepreneurship #AIContent #Nexoxa",
-            "Creating Nexoxa showed me: {insight}\n\nTech never stops amazing me! #TechNews #FutureTech #Nexoxa #Innovation",
-            "Nexoxa development insight: {insight}\n\nAgree or disagree? #TechDebate #Programming #AIContent #Nexoxa"
+            "Building Nexoxa taught me: {insight}\n\nWhat's your take on this? #TechLeadership #StartupLife",
+            "After creating Nexoxa, I've learned: {insight}\n\nAlways evolving in tech! #Innovation #TechTrends",
+            "From building Nexoxa: {insight}\n\nThoughts? #TechCommunity #Entrepreneurship",
+            "Creating Nexoxa showed me: {insight}\n\nTech never stops amazing me! #TechNews #FutureTech",
+            "Nexoxa development insight: {insight}\n\nAgree or disagree? #TechDebate #Programming"
         ]
         
-        # Professional insights about building companies and Nexoxa
+        # Professional insights about building companies
         self.company_insights = [
             "get a status page\nget a professional email\nget a terms of service/privacy/policy\nget a help center\nget a blog\nget a support twitter account\n\nyou instantly go from being another startup/saas to a real company",
             "wait fuck, i don't have a browser\n\nim setting up this new pc\n\nfirst thing i do, i uninstall microsoft edge\n\nthen i realize\n\ni don't have any other browser\n\nso now i can't get a browser\n\ni cant install a browser without a browser\n\nplease help",
-            "Revamped an old TV into a sleek, vintage-inspired gift—combining nostalgia with modern tech! 🚀💡 Proud to have built Nexoxa, pushing boundaries in creative tech solutions. Who else loves giving new life to old devices? #TechRevamp #DIY #Innovation #Nexoxa #Gifts #TechTips",
-            "Building Nexoxa taught me: the best way to learn programming is to build something you actually want to use",
-            "Nexoxa is an AI content sharing platform that revolutionizes how creators share and discover content. Most startups fail not because of bad code, but because of bad product-market fit",
-            "The hardest part of building Nexoxa wasn't the technical challenges, it's the people problems",
-            "Every successful tech company like Nexoxa started with someone solving their own problem",
-            "The best developers aren't the ones who know every language, they're the ones who can learn any language - learned this building Nexoxa",
-            "Code reviews aren't about finding bugs, they're about knowledge sharing and team growth - essential for Nexoxa's success",
-            "Building Nexoxa taught me: the most important skill in tech isn't coding, it's communication",
-            "Creating Nexoxa showed me: building a startup is 10% coding and 90% everything else"
+            "the best way to learn programming is to build something you actually want to use",
+            "most startups fail not because of bad code, but because of bad product-market fit",
+            "the hardest part of building a company isn't the technical challenges, it's the people problems",
+            "every successful tech company started with someone solving their own problem",
+            "the best developers aren't the ones who know every language, they're the ones who can learn any language",
+            "code reviews aren't about finding bugs, they're about knowledge sharing and team growth",
+            "the most important skill in tech isn't coding, it's communication",
+            "building a startup is 10% coding and 90% everything else"
         ]
         
         logger.info("Professional Twitter bot initialized successfully")
@@ -174,57 +173,29 @@ class ProfessionalTwitterBot:
         """Scrape hot posts from r/programming"""
         try:
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
             
             response = requests.get(
                 'https://www.reddit.com/r/programming/hot.json',
-                headers=headers,
-                timeout=10
+                headers=headers
             )
-            
-            # Check if response is valid
-            if response.status_code != 200:
-                logger.warning(f"Reddit API returned status code: {response.status_code}")
-                return []
-            
-            # Check if response has content
-            if not response.text.strip():
-                logger.warning("Reddit API returned empty response")
-                return []
-            
-            try:
-                data = response.json()
-            except ValueError as e:
-                logger.warning(f"Reddit API returned invalid JSON: {e}")
-                return []
-            
-            # Check if data structure is valid
-            if 'data' not in data or 'children' not in data['data']:
-                logger.warning("Reddit API returned unexpected data structure")
-                return []
+            data = response.json()
             
             posts = []
             for post in data['data']['children'][:5]:  # Top 5 posts
-                if 'data' in post:
-                    post_data = post['data']
-                    posts.append({
-                        'title': post_data.get('title', 'No title'),
-                        'url': f"https://reddit.com{post_data.get('permalink', '')}",
-                        'score': post_data.get('score', 0),
-                        'source': 'Reddit r/programming',
-                        'timestamp': datetime.now(),
-                        'type': 'discussion'
-                    })
+                post_data = post['data']
+                posts.append({
+                    'title': post_data['title'],
+                    'url': f"https://reddit.com{post_data['permalink']}",
+                    'score': post_data['score'],
+                    'source': 'Reddit r/programming',
+                    'timestamp': datetime.now(),
+                    'type': 'discussion'
+                })
             
             return posts
             
-        except requests.exceptions.Timeout:
-            logger.warning("Reddit API request timed out")
-            return []
-        except requests.exceptions.RequestException as e:
-            logger.warning(f"Reddit API request failed: {e}")
-            return []
         except Exception as e:
             logger.error(f"Error scraping Reddit: {e}")
             return []
@@ -234,9 +205,9 @@ class ProfessionalTwitterBot:
         try:
             # Create a prompt for pollinations.ai
             if content.get('type') == 'professional_insight':
-                prompt = f"Create a Twitter post about this tech insight: {content['title']}. Make it engaging, professional, and mention that I built Nexoxa (an AI content sharing platform). Include relevant hashtags. Keep it under 280 characters. Format with proper line breaks for readability."
+                prompt = f"Create a Twitter post about this tech insight: {content['title']}. Make it engaging, professional, and mention that I built Nexoxa. Include relevant hashtags. Keep it under 280 characters."
             else:
-                prompt = f"Create a Twitter post about this tech topic: {content['title']}. Make it engaging, informative, and professional. Mention that I built Nexoxa (an AI content sharing platform). Include relevant hashtags. Keep it under 280 characters. Format with proper line breaks for readability."
+                prompt = f"Create a Twitter post about this tech topic: {content['title']}. Make it engaging, informative, and professional. Mention that I built Nexoxa. Include relevant hashtags. Keep it under 280 characters."
             
             # Encode the prompt for URL
             encoded_prompt = urllib.parse.quote(prompt)
@@ -272,11 +243,11 @@ class ProfessionalTwitterBot:
         else:
             # Create engaging tweet formats for news
             tweet_templates = [
-                f"🔥 {title}\n\nBuilding Nexoxa (AI content sharing platform) taught me to stay updated with tech trends! #TechNews #Programming #Nexoxa #AIContent",
-                f"Interesting read: {title}\n\nAlways learning something new in tech! #TechTrends #Innovation #Nexoxa",
-                f"Just came across this: {title}\n\nThoughts? #TechCommunity #Nexoxa #StartupLife #AIContent",
-                f"📰 {title}\n\nTech never stops evolving! #TechNews #FutureTech #Nexoxa #Innovation",
-                f"Hot take: {title}\n\nAgree or disagree? #TechDebate #Programming #Nexoxa #AIContent"
+                f"🔥 {title}\n\nBuilding Nexoxa taught me to stay updated with tech trends! #TechNews #Programming #Nexoxa",
+                f"Interesting read: {title}\n\nAlways learning something new in tech! #TechTrends #Innovation",
+                f"Just came across this: {title}\n\nThoughts? #TechCommunity #Nexoxa #StartupLife",
+                f"📰 {title}\n\nTech never stops evolving! #TechNews #FutureTech #Nexoxa",
+                f"Hot take: {title}\n\nAgree or disagree? #TechDebate #Programming #Nexoxa"
             ]
             tweet = random.choice(tweet_templates)
         
@@ -342,22 +313,8 @@ class ProfessionalTwitterBot:
     def post_tweet(self, content: Dict, include_image: bool = False):
         """Post a tweet with optional image"""
         try:
-            # Test API connection first
-            logger.info("Testing Twitter API connection...")
-            try:
-                user = self.client.get_me()
-                if user.data:
-                    logger.info(f"✅ Connected to Twitter API as: @{user.data.username}")
-                else:
-                    logger.error("❌ Failed to get user info from Twitter API")
-                    return False
-            except Exception as e:
-                logger.error(f"❌ Twitter API connection test failed: {e}")
-                return False
-            
             # Format the tweet content
             tweet_text = self.format_tweet_with_pollinations(content)
-            logger.info(f"📝 Formatted tweet ({len(tweet_text)} chars): {tweet_text[:100]}...")
             
             # Add random delay to appear more human-like
             delay = random.uniform(30, 120)  # 30 seconds to 2 minutes
@@ -400,16 +357,6 @@ class ProfessionalTwitterBot:
             
             return True
             
-        except tweepy.TooManyRequests as e:
-            logger.warning(f"Rate limit exceeded: {e}")
-            logger.info("Waiting for rate limit reset...")
-            return False
-        except tweepy.Unauthorized as e:
-            logger.error(f"Unauthorized - check API credentials: {e}")
-            return False
-        except tweepy.Forbidden as e:
-            logger.error(f"Forbidden - check app permissions: {e}")
-            return False
         except Exception as e:
             logger.error(f"Error posting tweet: {e}")
             return False
@@ -439,62 +386,6 @@ class ProfessionalTwitterBot:
         else:
             log_tweet_activity(logger, selected_content, False)
     
-    def test_api_credentials(self):
-        """Test API credentials and permissions"""
-        logger.info("🧪 Testing Twitter API credentials...")
-        
-        try:
-            # Test API v2 connection
-            user = self.client.get_me()
-            if user.data:
-                logger.info(f"✅ API v2 connected as: @{user.data.username}")
-                logger.info(f"📊 User ID: {user.data.id}")
-            else:
-                logger.error("❌ API v2 connection failed")
-                return False
-            
-            # Test API v1.1 connection
-            try:
-                user_v1 = self.api_v1.verify_credentials()
-                if user_v1:
-                    logger.info(f"✅ API v1.1 connected as: @{user_v1.screen_name}")
-                else:
-                    logger.error("❌ API v1.1 connection failed")
-                    return False
-            except Exception as e:
-                logger.error(f"❌ API v1.1 test failed: {e}")
-                return False
-            
-            # Test posting permissions with a simple tweet
-            logger.info("🧪 Testing tweet posting permissions...")
-            test_tweet = "🧪 Testing Twitter API permissions - this is a test tweet from Nexoxa bot"
-            
-            try:
-                response = self.client.create_tweet(text=test_tweet)
-                if response.data:
-                    logger.info(f"✅ Tweet posted successfully! ID: {response.data['id']}")
-                    logger.info("🎉 API credentials and permissions are working correctly!")
-                    return True
-                else:
-                    logger.error("❌ Tweet posting failed - no response data")
-                    return False
-            except tweepy.TooManyRequests as e:
-                logger.warning(f"⚠️ Rate limit exceeded: {e}")
-                return False
-            except tweepy.Unauthorized as e:
-                logger.error(f"❌ Unauthorized - check API credentials: {e}")
-                return False
-            except tweepy.Forbidden as e:
-                logger.error(f"❌ Forbidden - check app permissions: {e}")
-                return False
-            except Exception as e:
-                logger.error(f"❌ Tweet posting test failed: {e}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"❌ API credentials test failed: {e}")
-            return False
-
     def start_bot(self, single_post: bool = False):
         """Start the bot with scheduled posting"""
         logger.info("Starting Professional Twitter bot...")
