@@ -386,6 +386,16 @@ class ProfessionalTwitterBot:
             
             return True
             
+        except tweepy.TooManyRequests as e:
+            logger.warning(f"Rate limit exceeded: {e}")
+            logger.info("Waiting for rate limit reset...")
+            return False
+        except tweepy.Unauthorized as e:
+            logger.error(f"Unauthorized - check API credentials: {e}")
+            return False
+        except tweepy.Forbidden as e:
+            logger.error(f"Forbidden - check app permissions: {e}")
+            return False
         except Exception as e:
             logger.error(f"Error posting tweet: {e}")
             return False
